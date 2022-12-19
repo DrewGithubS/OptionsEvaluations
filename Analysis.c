@@ -43,5 +43,5 @@ int main() {
 		}
 	}
 
-	doCallAnalysisFunction(dateArray, optionArray, underlyingPrice, optionCounter, uniqueDateCount);
+	doCallDataAnalysisFunction(dateArray, optionArray, underlyingPrice, optionCounter, uniqueDateCount);
 }

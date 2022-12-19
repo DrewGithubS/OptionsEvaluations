@@ -13,6 +13,115 @@ static int daysToExpire(Date a, Date b) {
 	return (b.year - a.year) * 252 + (b.month - a.month) * 30 + (b.day - a.day);
 }
 
+void doCallDataAnalysisFunction(
+	Date * dateArray,
+	OptionData * optionArray,
+	double * underlyingPrice,
+	int optionCounter,
+	int uniqueDateCount) {
+
+	FILE * output = fopen("Profit.csv", "w");
+	fprintf(output, "Date, UnderlyingPrice, OptionType, OptionStrike, OptionBid, OptionAsk, OptionExirationDate, UnderlyingOnExpiration\n");
+
+	Date currDate = dateArray[0];
+	double currPrice;
+	int dateIndex = 0;
+	int found;
+	for(int i = 0; i < optionCounter; i++) {
+		if(!compareDate(currDate, optionArray[i].QUOTE_DATE)) {
+			currDate = optionArray[i].QUOTE_DATE;
+			dateIndex++;
+		}
+
+		found = 0;
+		for(int j = dateIndex; j < uniqueDateCount; j++) {
+			if(compareDate(optionArray[i].EXPIRE_DATE.date, dateArray[j])) {
+				currPrice = underlyingPrice[j];
+				found = 1;
+				break;
+			}
+		}
+
+		if(found && 
+		  fabs(optionArray[i].C_DELTA) > 0.0 && 
+		  fabs(optionArray[i].C_DELTA) < 0.15 && 
+		  daysToExpire(currDate, optionArray[i].EXPIRE_DATE.date) < 40 &&
+		  daysToExpire(currDate, optionArray[i].EXPIRE_DATE.date) > 10 &&
+		  optionArray[i].C_ASK > 1 &&
+		  optionArray[i].STRIKE_DISTANCE_PCT < 0.20) {
+			fprintf(output, "%04d/%02d/%02d, ", optionArray[i].QUOTE_DATE.year, optionArray[i].QUOTE_DATE.month, optionArray[i].QUOTE_DATE.day);
+			fprintf(output, "%lf, ", optionArray[i].UNDERLYING_LAST);
+			fprintf(output, "CALL, ");
+			fprintf(output, "%lf, ", optionArray[i].STRIKE);
+			fprintf(output, "%lf, ", optionArray[i].C_BID);
+			fprintf(output, "%lf, ", optionArray[i].C_ASK);
+			fprintf(output, "%04d/%02d/%02d, ", optionArray[i].EXPIRE_DATE.date.year, optionArray[i].EXPIRE_DATE.date.month, optionArray[i].EXPIRE_DATE.date.day);
+			fprintf(output, "%lf", currPrice);
+			fprintf(output, "\n");
+		}
+
+		if(i % 1000 == 0) {
+			printf("%lf%% done...\n", (double) 100 * (double) i / (double) optionCounter);
+		}
+	}
+	fclose(output);
+}
+
+void doPutDataAnalysisFunction(
+	Date * dateArray,
+	OptionData * optionArray,
+	double * underlyingPrice,
+	int optionCounter,
+	int uniqueDateCount) {
+
+	FILE * output = fopen("Profit.csv", "w");
+	fprintf(output, "Date, UnderlyingPrice, OptionType, OptionStrike, OptionBid, OptionAsk, OptionExirationDate, UnderlyingOnExpiration\n");
+
+	Date currDate = dateArray[0];
+	double currPrice;
+	int dateIndex = 0;
+	int found;
+	for(int i = 0; i < optionCounter; i++) {
+		if(!compareDate(currDate, optionArray[i].QUOTE_DATE)) {
+			currDate = optionArray[i].QUOTE_DATE;
+			dateIndex++;
+		}
+
+		found = 0;
+		for(int j = dateIndex; j < uniqueDateCount; j++) {
+			if(compareDate(optionArray[i].EXPIRE_DATE.date, dateArray[j])) {
+				currPrice = underlyingPrice[j];
+				found = 1;
+				break;
+			}
+		}
+
+		if(found && 
+		  fabs(optionArray[i].P_DELTA) > 0.0 && 
+		  fabs(optionArray[i].P_DELTA) < 0.15 && 
+		  daysToExpire(currDate, optionArray[i].EXPIRE_DATE.date) < 40 &&
+		  daysToExpire(currDate, optionArray[i].EXPIRE_DATE.date) > 10 &&
+		  optionArray[i].P_ASK > 1 &&
+		  optionArray[i].STRIKE_DISTANCE_PCT < 0.20) {
+			fprintf(output, "%04d/%02d/%02d, ", optionArray[i].QUOTE_DATE.year, optionArray[i].QUOTE_DATE.month, optionArray[i].QUOTE_DATE.day);
+			fprintf(output, "%lf, ", optionArray[i].UNDERLYING_LAST);
+			fprintf(output, "PUT, ");
+			fprintf(output, "%lf, ", optionArray[i].STRIKE);
+			fprintf(output, "%lf, ", optionArray[i].P_BID);
+			fprintf(output, "%lf, ", optionArray[i].P_ASK);
+			fprintf(output, "%04d/%02d/%02d, ", optionArray[i].EXPIRE_DATE.date.year, optionArray[i].EXPIRE_DATE.date.month, optionArray[i].EXPIRE_DATE.date.day);
+			fprintf(output, "%lf", currPrice);
+			fprintf(output, "\n");
+		}
+
+		if(i % 1000 == 0) {
+			printf("%lf%% done...\n", (double) 100 * (double) i / (double) optionCounter);
+		}
+	}
+	fclose(output);
+}
+
+
 void doCallAnalysisFunction(
 	Date * dateArray,
 	OptionData * optionArray,
@@ -124,7 +233,7 @@ void doCallAnalysisFunction(
 	free(totalSold);
 	free(assignedLoss);
 	free(optionsSold);
-	free(profitFromHolding)
+	free(profitFromHolding);
 	free(profit);
 	free(cumulativeProfit);
 
@@ -236,12 +345,10 @@ void doPutAnalysisFunction(
 	printf("Exiting...\n");
 }
 
-void doIVAnalysisFunction(
+void doAsymmetryAnalysisFunction(
 	Date * dateArray,
 	OptionData * optionArray,
 	double * underlyingPrice,
 	int optionCounter,
 	int uniqueDateCount) {
-
-
 }
